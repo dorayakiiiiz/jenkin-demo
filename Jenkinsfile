@@ -1,6 +1,11 @@
 pipeline {
     agent { label 'for-testing' }
 
+    // Task 5: Tạo tham số lựa chọn yes/no
+    parameters {
+        choice(name: 'RUN_TEST', choices: ['yes', 'no'], description: 'Sỹ có muốn chạy bộ Test không?')
+    }
+
     stages {
         stage('Step 1: Checkout') {
             steps {
@@ -23,39 +28,29 @@ pipeline {
         stage('Step 3: Lint with Ruff') {
             steps {
                 script {
-                    // Dùng catchError để giống "continue-on-error: true" trong GitHub Actions
                     catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                         sh '''
                             . venv/bin/activate
-                            ruff --target-version=py310 .
+                            # Sửa lỗi: Bỏ --target-version vì Ruff bản này không hỗ trợ
+                            ruff check .
                         '''
                     }
                 }
             }
         }
 
-        stage('Step 4: Test with Pytest') {
+        stage('Step 4: Test & Coverage') {
+            // Task 5: Chỉ chạy nếu chọn "yes"
+            when {
+                expression { return params.RUN_TEST == 'yes' }
+            }
             steps {
                 sh '''
                     . venv/bin/activate
                     coverage run -m pytest -v -s
-                '''
-            }
-        }
-
-        stage('Step 5: Coverage Report') {
-            steps {
-                sh '''
-                    . venv/bin/activate
                     coverage report -m
                 '''
             }
-        }
-    }
-
-    post {
-        always {
-            echo 'Quy trình CI hoàn tất!'
         }
     }
 }
