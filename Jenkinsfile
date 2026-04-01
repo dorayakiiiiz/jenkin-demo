@@ -1,10 +1,11 @@
 pipeline {
-    agent { label 'for-testing' }
+    agent { label 'cocaigibuoncuoi' }
 
     // Task 5: Tạo tham số lựa chọn yes/no
     parameters {
         choice(name: 'RUN_TEST', choices: ['yes', 'no'], description: 'Sỹ có muốn chạy bộ Test không?')
     }
+
 
     stages {
         stage('Step 1: Checkout') {
